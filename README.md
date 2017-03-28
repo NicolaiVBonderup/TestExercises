@@ -1,5 +1,7 @@
 # Selenium Exercise
 
+<img src="https://raw.githubusercontent.com/NicolaiVBonderup/TestExercises/SeleniumCars/98ab6d668ac36bb673dc795543e52ef9.png">
+
 ### Discuss Pros and Cons with manual versus automated tests
 
 **Manual** testing has the ability to be more flexible than automated tests, and the startup period is much much shorter, allowing it to actually be used i things such as exploratory testing.
