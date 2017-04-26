@@ -1,6 +1,7 @@
 package mapper;
 
 import connector.DBConnector;
+import connector.EnvironmentVar;
 import entity.User;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -9,12 +10,20 @@ import java.sql.Statement;
 
 public class UserMapper
 {
+    DBConnector conn;
+
+    public UserMapper(DBConnector conn) {
+        this.conn = conn;
+    }
+    
+    
+    
     public User getUser(int id)
     {
         try
         {
             String sql = "select idUser, username, password, balance from user where idUser = ?";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = conn.getConnection().prepareStatement(sql);
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next())
@@ -38,7 +47,7 @@ public class UserMapper
         try
         {
             String sql = "update user set balance = ? where idUser = ?";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = conn.getConnection().prepareStatement(sql);
             pstmt.setDouble(1, newBalance);
             pstmt.setInt(2, user.getIdUser());
             pstmt.executeUpdate();
@@ -56,7 +65,7 @@ public class UserMapper
         try
         {
             String sql = "INSERT INTO user (username, password, balance) VALUES (?,?,?)";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement pstmt = conn.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, username);
             pstmt.setString(2, password);
             pstmt.setDouble(3, balance);
@@ -82,7 +91,7 @@ public class UserMapper
         {
             String sql = "select idUser, balance from user where username = ? and password = ?";
 
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = conn.getConnection().prepareStatement(sql);
             pstmt.setString(1, username);
             pstmt.setString(2, password);
             ResultSet rs = pstmt.executeQuery();
@@ -103,9 +112,10 @@ public class UserMapper
 
     public static void main(String[] args)
     {
-        UserMapper um = new UserMapper();
+        DBConnector dbc = new DBConnector(EnvironmentVar.mysqlDriver,EnvironmentVar.dbURI,EnvironmentVar.username,EnvironmentVar.password);
+        UserMapper um = new UserMapper(dbc);
         //um.createUser("admin", "Admin123", 1000);
-        User u = um.validateUser("admin", "Admin123");
+        User u = um.validateUser("Christian", "Olsen");
         System.out.println("validateUser()");
         System.out.println(u.getUserName());
         System.out.println("getUser()");

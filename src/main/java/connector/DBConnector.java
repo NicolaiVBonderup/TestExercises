@@ -6,13 +6,24 @@ import java.sql.SQLException;
 
 public class DBConnector
 {
-    private static String driver = "com.mysql.jdbc.Driver";
-    private static String url = "jdbc:mysql://localhost:3306/cupcakeshop";
-    private static String user = "root";
-    private static String password = "root";
-    private static Connection conn = null;
+    private String driver = "com.mysql.jdbc.Driver";
+    private String url = "jdbc:mysql://localhost:3306/cupcakeshop";
+    private String user = "root";
+    private String password = "root";
+    private Connection conn = null;
 
-    public static Connection getConnection()
+    public DBConnector(String driver, String url, String user, String password) {
+        this.driver = driver;
+        this.url = url;
+        this.user = user;
+        this.password = password;
+    }
+
+    public DBConnector() {
+    }
+    
+    
+    public Connection getConnection()
     {
         if (conn == null)
         {

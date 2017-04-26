@@ -13,12 +13,19 @@ import java.util.List;
 
 public class CakeMapper
 {
+    DBConnector connector;
+
+    public CakeMapper(DBConnector connector) {
+        this.connector = connector;
+    }
+    
     public Cake getCakeById(int id)
     {
         try
         {
             String sql = "select idCupcake, cupcakeName, idTopping, idBottom from cupcake WHERE idCupcake = ?";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            //PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next())
@@ -41,7 +48,8 @@ public class CakeMapper
         try
         {
             String sql = "delete from cupcaketopping WHERE idTopping = ?";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            //PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
             pstmt.setInt(1, id);
             pstmt.executeUpdate();
             
@@ -63,7 +71,8 @@ public class CakeMapper
         try
         {
             String sql = "INSERT INTO cupcake (cupcakeName, idTopping, idBottom) VALUES (?,?,?)";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            //PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setString(1, name);
             pstmt.setInt(2, top.getId());
             pstmt.setInt(3, bottom.getId());
@@ -87,7 +96,9 @@ public class CakeMapper
         try
         {
             String sql = "select idBottom, cupcakeBottomName, price from cupcakebottom";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            //PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
+
 
             ResultSet rs = pstmt.executeQuery();
             while (rs.next())
@@ -111,7 +122,8 @@ public class CakeMapper
         try
         {
             String sql = "select idTopping, cupcakeToppingName, price from cupcaketopping";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            //PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
 
             ResultSet rs = pstmt.executeQuery();
             while (rs.next())
@@ -134,7 +146,8 @@ public class CakeMapper
         try
         {
             String sql = "select cupcakeBottomName, price from cupcakebottom WHERE idBottom = ?";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            //PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next())
@@ -156,7 +169,8 @@ public class CakeMapper
         try
         {
             String sql = "select cupcakeToppingName, price from cupcaketopping WHERE idTopping = ?";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            //PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
             if (rs.next())

@@ -1,6 +1,7 @@
 package mapper;
 
 import connector.DBConnector;
+import connector.EnvironmentVar;
 import entity.Invoice;
 import entity.InvoiceLine;
 import java.sql.PreparedStatement;
@@ -10,133 +11,131 @@ import java.sql.Statement;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
-public class InvoiceMapper
-{
-    CakeMapper ccm = new CakeMapper();
+public class InvoiceMapper {
 
-    public void checkInvoice(int invoiceId)
-    {
-        try
-        {
+    CakeMapper ccm;
+    DBConnector connector;
+
+    public InvoiceMapper(CakeMapper ccm, DBConnector connector) {
+        this.ccm = ccm;
+        this.connector = connector;
+    }
+
+    public void checkInvoice(int invoiceId) throws SQLException {
+        try {
             String sql = "UPDATE invoice SET paid = 1 WHERE idInvoice = ?";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
             pstmt.setInt(1, invoiceId);
             int result = pstmt.executeUpdate();
-        }
-        catch (SQLException ex)
-        {
+        } catch (SQLException ex) {
             ex.printStackTrace();
+        } finally {
+            connector.getConnection().close();
         }
     }
 
-    public Invoice getInvoiceById(int id)
-    {
-        try
-        {
+    public Invoice getInvoiceById(int id) throws SQLException {
+        try {
             String sql = "select idInvoice, idUser, created from invoice WHERE idInvoice = ?";
 
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
             pstmt.setInt(1, id);
             ResultSet rs = pstmt.executeQuery();
-            
-            if (rs.next())
-            {
+            if (rs.next()) {
                 int userId = rs.getInt("idUser");
                 Date created = new Date(rs.getDate("created").getTime());
                 return new Invoice(id, userId, created, getLinesByInvoice(id));
             }
 
-        } catch (SQLException ex)
-        {
+        } catch (SQLException ex) {
             ex.printStackTrace();
+        } finally {
+            connector.getConnection().close();
         }
         return null;
     }
 
-    private List<InvoiceLine> getLinesByInvoice(int invoiceId)
-    {
+    private List<InvoiceLine> getLinesByInvoice(int invoiceId) throws SQLException {
         List<InvoiceLine> lines = new ArrayList();
-        try
-        {
+        try {
             String sql = "select id, idInvoice, idCupcake, qty from invoicedetails WHERE idInvoice = ?";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql);
             pstmt.setInt(1, invoiceId);
             ResultSet rs = pstmt.executeQuery();
-            
-            while (rs.next())
-            {
+
+            while (rs.next()) {
                 int id = rs.getInt("id");
                 int cupcakeId = rs.getInt("idCupcake");
                 int qty = rs.getInt("qty");
                 lines.add(new InvoiceLine(id, invoiceId, ccm.getCakeById(cupcakeId), qty));
             }
 
-        }
-        catch (SQLException ex)
-        {
+        } catch (SQLException ex) {
             ex.printStackTrace();
+        } finally {
+            connector.getConnection().close();
         }
         return lines;
     }
 
-    public static void main(String[] args)
-    {
-        InvoiceMapper im = new InvoiceMapper();
+    public static void main(String[] args) throws SQLException {
+        DBConnector dbc = new DBConnector(EnvironmentVar.mysqlDriver, EnvironmentVar.dbURI, EnvironmentVar.username, EnvironmentVar.password);
+        InvoiceMapper im = new InvoiceMapper(new CakeMapper(dbc), dbc);
         im.createInvoice(null, 1);
     }
 
-    public int createInvoice(List<InvoiceLine> lines, int userId)
-    {
-        try
-        {
+    public int createInvoice(List<InvoiceLine> lines, int userId) throws SQLException {
+        try {
             String sql = "INSERT INTO invoice (idUser) VALUES (?)";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setInt(1, userId);
             pstmt.executeUpdate();
             ResultSet rs = pstmt.getGeneratedKeys();
-            if (rs.next())
-            {
+            if (rs.next()) {
                 final int invoiceId = rs.getInt(1);
-                if (lines != null)
-                {
-                    lines.stream().forEach((line) ->
-                    {
-                        addInvoiceLine(invoiceId, line.getCupcake().getId(), line.getAmount());
+                if (lines != null) {
+                    lines.stream().forEach((line)
+                            -> {
+                        try {
+                            addInvoiceLine(invoiceId, line.getCupcake().getId(), line.getAmount());
+                        } catch (SQLException ex) {
+                            Logger.getLogger(InvoiceMapper.class.getName()).log(Level.SEVERE, null, ex);
+                        }
                     });
                 }
 
                 return invoiceId;
-            } else
-            {
+            } else {
                 throw new SQLException("could not insert invoice");
             }
-        } catch (SQLException ex)
-        {
+        } catch (SQLException ex) {
             ex.printStackTrace();
+        } finally {
+            connector.getConnection().close();
         }
         return 0;
     }
 
-    public InvoiceLine addInvoiceLine(int invoiceId, int cupcakeId, int qty)
-    {
-        try
-        {
+    public InvoiceLine addInvoiceLine(int invoiceId, int cupcakeId, int qty) throws SQLException {
+        try {
             String sql = "INSERT INTO invoicedetails (idInvoice, idCupcake, qty) VALUES (?,?,?)";
-            PreparedStatement pstmt = DBConnector.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
+            PreparedStatement pstmt = connector.getConnection().prepareStatement(sql, Statement.RETURN_GENERATED_KEYS);
             pstmt.setInt(1, invoiceId);
             pstmt.setInt(2, cupcakeId);
             pstmt.setInt(3, qty);
             pstmt.executeUpdate();
             ResultSet rs = pstmt.getGeneratedKeys();
-            if (rs.next())
-            {
+            if (rs.next()) {
                 return new InvoiceLine(rs.getInt(1), invoiceId, ccm.getCakeById(cupcakeId), qty);
             }
 
-        } catch (SQLException ex)
-        {
+        } catch (SQLException ex) {
             ex.printStackTrace();
+        } finally {
+            connector.getConnection().close();
         }
         return null;
     }

@@ -6,6 +6,7 @@ mapper\CakeMapper.class
 servlet\Control.class
 entity\Top.class
 entity\Bottom.class
+connector\EnvironmentVar.class
 mapper\InvoiceMapper.class
 connector\DBConnector.class
 entity\InvoiceLine.class
